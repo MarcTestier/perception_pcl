@@ -82,7 +82,7 @@ public:
     cloud_topic_ = "cloud_pcd";
     tf_frame_ = this->declare_parameter("tf_frame", tf_frame_);
     period_ms_ = this->declare_parameter("publishing_period_ms", 3000);
-    file_name_ = this->declare_parameter<std::string>("file_name");
+    file_name_ = this->declare_parameter("file_name", "");
 
     if (file_name_ == "" || pcl::io::loadPCDFile(file_name_, cloud_) == -1) {
       RCLCPP_ERROR(this->get_logger(), "failed to open PCD file");
@@ -92,8 +92,8 @@ public:
     int nr_points = cloud_.width * cloud_.height;
 
     auto fields_list = pcl::getFieldsList(cloud_);
-    auto resolved_cloud_topic =
-      this->get_node_topics_interface()->resolve_topic_name(cloud_topic_);
+    auto resolved_cloud_topic = std::string(this->get_name()) + "/" + cloud_topic_;
+    // auto resolved_cloud_topic = this->get_node_topics_interface()->resolve_topic_name(cloud_topic_);
 
     pub_ = this->create_publisher<sensor_msgs::msg::PointCloud2>(cloud_topic_, 10);
     timer_ = this->create_wall_timer(
